@@ -3,15 +3,20 @@ package me.postmus.joris;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -22,16 +27,15 @@ import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class Window {
-	JFrame window;
-	JPanel titlePanel, imgPanel, encPanel, decPanel, datePanel;
-	JLabel titleLabel, imgLabel, encLabel, decUpLabel, encUpLabel, decLabel, dateLabel;
+	//JFrame window;
+	JPanel titlePanel, encPanel, decPanel, datePanel;
+	JLabel titleLabel, encLabel, decUpLabel, encUpLabel, decLabel, dateLabel;
 	JButton encButton, decButton, encStartButton, decStartButton;
 	Container con;
 	Font titleFont = new Font("Monospaced", Font.BOLD, 85);
 	Font labFont = new Font("Monospaced", Font.BOLD, 30);
 	Font smallFont = new Font("Monospaced", Font.BOLD, 20);
 	Font extraSmallFont = new Font("Monospaced", Font.BOLD, 10);
-	//Color backgroundColor = new Color(199, 255, 245);
 	Color backgroundColor = new Color(20, 20, 20);
 	Color buttonBackgroundColor = new Color(80, 80, 80);
 	Color panelBackgroundColor = new Color(150, 150, 150);
@@ -46,9 +50,14 @@ public class Window {
 	Encryptor encryptor = new Encryptor();
 	String encFile = "";
 	String decFile = "";
+	String outDecPath = "outputDec.txt";
+	String outEncPath = "outputEnc.txt";
+	JLabel imgLabel = new JLabel();
+	JFrame window = new JFrame("JorisCode");
+	JPanel imgPanel = new JPanel();
 	
 	public void createWindow() {
-		window = new JFrame("JorisCode");
+		
 		window.setSize(860, 640);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.getContentPane().setBackground(backgroundColor);
@@ -66,22 +75,20 @@ public class Window {
 		titlePanel.add(titleLabel);
 		con.add(titlePanel);
 		
-		imgPanel = new JPanel();
 		imgPanel.setBounds(25, 140, 410, 410);
 		imgPanel.setBackground(panelBackgroundColor);
-		//imgPanel.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));
 		ImageIcon image = new ImageIcon(".//Res//Output.png");
 		window.setIconImage(image.getImage());
 		Image imageImg = image.getImage();
 		Image resizedImage = imageImg.getScaledInstance(400, 400, java.awt.Image.SCALE_SMOOTH);
 		image = new ImageIcon(resizedImage);
-		imgLabel = new JLabel();
+		
 		imgLabel.setIcon(image);
 		imgPanel.add(imgLabel);
 		con.add(imgPanel);
 		
 		encPanel = new JPanel(new BorderLayout(10, 0));
-		encPanel.setBounds(450, 160, 380, 175);
+		encPanel.setBounds(450, 140, 380, 170);
 		encPanel.setBackground(panelBackgroundColor);
 		encLabel = new JLabel("Encryption", SwingConstants.CENTER);
 		encLabel.setFont(labFont);
@@ -121,7 +128,17 @@ public class Window {
 			    try {
 			    		String textRead = encryptor.readFile(encFile);
 					int[][] encryptedText = encryptor.encryptText(textRead);
-					encryptor.generateImg(encryptedText);
+					BufferedImage img = encryptor.generateImg(encryptedText);
+					Image resizedImg = img.getScaledInstance(400, 400, java.awt.Image.SCALE_SMOOTH);
+					ImageIcon newIco = new ImageIcon(resizedImg);
+					imgLabel.setIcon(newIco);
+					imgLabel.revalidate();
+					imgLabel.repaint();
+					
+					LocalDateTime now = LocalDateTime.now();
+					dateLabel.setText("Picture generated on " + dtf.format(now));
+					dateLabel.revalidate();
+					dateLabel.repaint();
 				} catch (IOException e1) {
 					System.out.println("Problem with text file");
 				}
@@ -136,7 +153,7 @@ public class Window {
 		con.add(encPanel);
 		
 		decPanel = new JPanel(new BorderLayout(10, 0));
-		decPanel.setBounds(450,  355, 380, 175);
+		decPanel.setBounds(450, 330, 380, 170);
 		decPanel.setBackground(panelBackgroundColor);
 		decLabel = new JLabel("Decryption", SwingConstants.CENTER);
 		decLabel.setFont(labFont);
@@ -155,6 +172,7 @@ public class Window {
 		        int returnVal = picChooser.showOpenDialog(null);
 		        if(returnVal == JFileChooser.APPROVE_OPTION) {
 		           decUpLabel.setText("file: " + picChooser.getSelectedFile().getName());
+		           decFile = picChooser.getSelectedFile().getPath();
 		        }
 		    }
 		});
@@ -169,7 +187,21 @@ public class Window {
 		    @Override
 		    public void actionPerformed(ActionEvent e)
 		    {
-			    System.out.println("Starting Decryption");
+			    Decryptor dec = new Decryptor();
+			    try {
+					BufferedImage img = ImageIO.read(new File(decFile));
+					String decryptedString = dec.arrayToString(dec.pictureToArray(img));
+					BufferedWriter out = new BufferedWriter(new FileWriter(outDecPath));
+					out.write(decryptedString);
+					out.close();
+					if (Desktop.isDesktopSupported()) {
+					    Desktop.getDesktop().edit(new File(outDecPath));
+					} else {
+					    System.out.println("rip");
+					}
+				} catch (IOException e1) {
+					System.out.println("Problem with file");
+				}
 		    }
 		});
 		decUpLabel = new JLabel("Upload picture to Decrypt", SwingConstants.CENTER);
@@ -189,12 +221,6 @@ public class Window {
 		dateLabel.setForeground(panelBackgroundColor);
 		datePanel.add(dateLabel);
 		con.add(datePanel);
-		
 		window.setVisible(true);
-	}
-	
-	public void addPicture(BufferedImage img) {
-		//System.out.println(img);
-		//imgLabel.setIcon(new ImageIcon(img));
 	}
 }
