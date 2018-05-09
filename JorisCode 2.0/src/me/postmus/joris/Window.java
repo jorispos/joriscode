@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -28,9 +29,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class Window {
 	//JFrame window;
-	JPanel titlePanel, encPanel, decPanel, datePanel;
-	JLabel titleLabel, encLabel, decUpLabel, encUpLabel, decLabel, dateLabel;
-	JButton encButton, decButton, encStartButton, decStartButton;
+	JPanel titlePanel, encPanel, decPanel, datePanel, pathPanel;
+	JLabel titleLabel, encLabel, decUpLabel, encUpLabel, decLabel, dateLabel, pathLabel, pathPath;
+	JButton encButton, decButton, encStartButton, decStartButton, pathChooser;
 	Container con;
 	Font titleFont = new Font("Monospaced", Font.BOLD, 85);
 	Font labFont = new Font("Monospaced", Font.BOLD, 30);
@@ -153,7 +154,7 @@ public class Window {
 		con.add(encPanel);
 		
 		decPanel = new JPanel(new BorderLayout(10, 0));
-		decPanel.setBounds(450, 330, 380, 170);
+		decPanel.setBounds(450, 325, 380, 170);
 		decPanel.setBackground(panelBackgroundColor);
 		decLabel = new JLabel("Decryption", SwingConstants.CENTER);
 		decLabel.setFont(labFont);
@@ -221,6 +222,21 @@ public class Window {
 		dateLabel.setForeground(panelBackgroundColor);
 		datePanel.add(dateLabel);
 		con.add(datePanel);
+		
+		pathPanel = new JPanel(new GridLayout(1,3, 5, 0));
+		pathPanel.setBounds(450, 510, 380, 40);
+		pathPanel.setBackground(panelBackgroundColor);
+		pathPath = new JLabel("H:/JorisOutput", SwingConstants.LEFT);
+		pathPath.setFont(extraSmallFont);
+		pathPanel.add(pathPath);
+		ImageIcon openFolder = new ImageIcon(".Res\\openFolder.png");
+		System.out.println(openFolder);
+		pathChooser = new JButton(openFolder);
+		pathChooser.setFont(extraSmallFont);
+		pathPanel.add(pathChooser);
+		con.add(pathPanel);
+		
+		
 		window.setVisible(true);
 	}
 }
